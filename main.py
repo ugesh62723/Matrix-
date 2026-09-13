@@ -15,9 +15,11 @@ from kivy.clock import Clock
 from kivy.metrics import dp
 from kivy.graphics import Color, Line
 
-FILE = "user_name.txt"
-HIST_FILE = "history.json"
-THEME_FILE = "theme.json"
+def get_file_path(filename):
+    app = App.get_running_app()
+    if app:
+        return os.path.join(app.user_data_dir, filename)
+    return filename
 
 COLOR_PALETTE = {
     "Neon Green": (0, 1, 0.25, 1),
@@ -50,26 +52,28 @@ def calc_fn(x):
     return eval(x, {"__builtins__": {}}, {})
 
 def save_name(name):
-    with open(FILE, "w") as f:
+    with open(get_file_path("user_name.txt"), "w") as f:
         f.write(name)
 
 def load_name():
-    if os.path.exists(FILE):
-        with open(FILE, "r") as f:
+    path = get_file_path("user_name.txt")
+    if os.path.exists(path):
+        with open(path, "r") as f:
             return f.read().strip()
     return None
 
 def load_history():
-    if os.path.exists(HIST_FILE):
+    path = get_file_path("history.json")
+    if os.path.exists(path):
         try:
-            with open(HIST_FILE, "r") as f:
+            with open(path, "r") as f:
                 return json.load(f)
         except:
             return []
     return []
 
 def save_history(history_list):
-    with open(HIST_FILE, "w") as f:
+    with open(get_file_path("history.json"), "w") as f:
         json.dump(history_list, f, indent=2)
 
 def add_to_history(expr, result):
@@ -79,13 +83,14 @@ def add_to_history(expr, result):
     save_history(history_list)
 
 def save_theme(theme_name):
-    with open(THEME_FILE, "w") as f:
+    with open(get_file_path("theme.json"), "w") as f:
         json.dump({"theme": theme_name}, f)
 
 def load_theme():
-    if os.path.exists(THEME_FILE):
+    path = get_file_path("theme.json")
+    if os.path.exists(path):
         try:
-            with open(THEME_FILE, "r") as f:
+            with open(path, "r") as f:
                 data = json.load(f)
                 return data.get("theme", "Neon Green")
         except:
@@ -185,7 +190,6 @@ class CalculatorScreen(Screen):
         
         self.main_layout = BoxLayout(orientation='vertical', padding=[dp(10), dp(0), dp(10), dp(10)], spacing=dp(4))
         
-        # TOP BAR - Bada size aur clear visibility
         top_bar = BoxLayout(size_hint_y=None, height=dp(48), spacing=dp(2))
         
         self.top_label = Label(
@@ -235,7 +239,6 @@ class CalculatorScreen(Screen):
         self.main_layout.add_widget(top_bar)
         self.main_layout.add_widget(Label(size_hint_y=1))
 
-        # USER ROW
         user_bar = BoxLayout(size_hint_y=None, height=dp(22))
         self.user_label = Label(
             text="USER: ", 
@@ -249,7 +252,6 @@ class CalculatorScreen(Screen):
         user_bar.add_widget(self.user_label)
         self.main_layout.add_widget(user_bar)
 
-        # DISPLAY BOX
         display_box = BoxLayout(orientation='vertical', padding=dp(8), size_hint_y=None, height=dp(95))
         with display_box.canvas.before:
             self.border_color = Color(0, 1, 0.25, 1)
@@ -282,7 +284,6 @@ class CalculatorScreen(Screen):
         display_box.add_widget(self.lbl_live)
         self.main_layout.add_widget(display_box)
 
-        # GRID BUTTONS
         self.grid = GridLayout(cols=4, spacing=dp(2), size_hint_y=None, height=dp(300))
         buttons = [
             ('7', 0.08, 0.08, 0.08), ('8', 0.08, 0.08, 0.08), ('9', 0.08, 0.08, 0.08), ('/', 0, 0, 0),
@@ -306,7 +307,6 @@ class CalculatorScreen(Screen):
             
         self.main_layout.add_widget(self.grid)
 
-        # BOTTOM BUTTONS
         bottom_bar = BoxLayout(spacing=dp(6), size_hint_y=None, height=dp(50))
         ac_btn = Button(
             text="AC", 
@@ -459,8 +459,9 @@ class CalculatorScreen(Screen):
         self.manager.current = 'history'
 
     def logout(self, instance=None):
-        if os.path.exists(FILE):
-            os.remove(FILE)
+        path = get_file_path("user_name.txt")
+        if os.path.exists(path):
+            os.remove(path)
         app = App.get_running_app()
         app.user_name = ""
         app.saved_flag = False
@@ -480,7 +481,6 @@ class HistoryScreen(Screen):
         c = app.theme_color
         history_list = load_history()
 
-        # Title Header
         self.main_layout.add_widget(Label(
             text="> CALCULATION HISTORY_", 
             font_size='14sp', 
@@ -576,15 +576,16 @@ class HistoryScreen(Screen):
         calc_screen.logout()
 
     def clear_history(self, instance):
-        if os.path.exists(HIST_FILE):
-            os.remove(HIST_FILE)
+        path = get_file_path("history.json")
+        if os.path.exists(path):
+            os.remove(path)
         self.on_enter()
 
 
 class CalculatorApp(App):
     def build(self):
         Window.clearcolor = (0, 0, 0, 1)
-        self.title = "Calculator"
+        self.title = "Matrix"
         self.user_name = ""
         self.saved_flag = False
         
@@ -615,3 +616,4 @@ class CalculatorApp(App):
 
 if __name__ == '__main__':
     CalculatorApp().run()
+            
