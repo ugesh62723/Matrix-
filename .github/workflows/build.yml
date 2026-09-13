@@ -1,4 +1,4 @@
- name: Build Android APK
+name: Build Matrix APK
 
 on:
   push:
@@ -23,36 +23,16 @@ jobs:
         sudo apt-get update
         sudo apt-get install -y ccache git libffi-dev libssl-dev python3-dev build-essential libtool automake cmake gettext zip unzip openjdk-17-jdk
 
-    - name: Install Buildozer & Dependencies
+    - name: Install Buildozer and Cython
       run: |
         python -m pip install --upgrade pip setuptools wheel
         pip install Cython==0.29.33 buildozer
 
-    - name: Create buildozer.spec Automatically
-      run: |
-        cat << 'EOF' > buildozer.spec
-        [app]
-        title = Matrix
-        package.name = matrix
-        package.domain = org.yuvraj
-        source.dir = .
-        source.include_exts = py,png,jpg,kv,atlas,json,txt
-        version = 1.0
-        requirements = python3,kivy
-        orientation = portrait
-        fullscreen = 0
-        android.permissions = INTERNET
-        android.accept_sdk_license = True
-        android.archs = arm64-v8a
-
-        [buildozer]
-        log_level = 2
-        warn_on_root = 1
-        EOF
-
-    - name: Build APK with Buildozer
-      run: |
-        buildozer -v android debug
+    - name: Build APK Action
+      uses: Artemis-dk/buildozer-action@v1.2
+      with:
+        workdir: .
+        buildozer_version: master
 
     - name: Upload APK
       uses: actions/upload-artifact@v4
